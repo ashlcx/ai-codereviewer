@@ -10,6 +10,8 @@ const OPENAI_API_BASE_URL: string = core.getInput("OPENAI_API_BASE_URL");
 
 const GITEA_URL = process.env.GITHUB_SERVER_URL!;
 
+console.log(GITEA_TOKEN);
+
 const gitea = giteaApi(GITEA_URL, {
   token: GITEA_TOKEN,
 });
