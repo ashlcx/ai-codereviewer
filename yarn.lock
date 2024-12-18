@@ -323,6 +323,11 @@ formdata-node@^4.3.2:
     node-domexception "1.0.0"
     web-streams-polyfill "4.0.0-beta.3"
 
+gitea-js@^1.22.0:
+  version "1.22.0"
+  resolved "https://registry.yarnpkg.com/gitea-js/-/gitea-js-1.22.0.tgz#bf081fd69eff102d5a00660b6d5f5e8f8fd34f3a"
+  integrity sha512-vG3yNU2NKX7vbsqHH5U3q0u3OmWWh3c4nvyWtx022jQEDJDZP47EoGurXCmOhzvD5AwgUV6r+lVAz+Fa1dazgg==
+
 humanize-ms@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/humanize-ms/-/humanize-ms-1.2.1.tgz#c46e3159a293f6b896da29316d8b6fe8bb79bbed"
