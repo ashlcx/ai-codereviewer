@@ -47,7 +47,6 @@ const OPENAI_API_KEY = core.getInput("OPENAI_API_KEY");
 const OPENAI_API_MODEL = core.getInput("OPENAI_API_MODEL");
 const OPENAI_API_BASE_URL = core.getInput("OPENAI_API_BASE_URL");
 const GITEA_URL = process.env.GITHUB_SERVER_URL;
-console.log(GITEA_TOKEN);
 const gitea = (0, gitea_js_1.giteaApi)(GITEA_URL, {
     token: GITEA_TOKEN,
 });
@@ -67,6 +66,12 @@ function getPRDetails() {
         };
     });
 }
+function getDiff(owner, repo, pull_number) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const response = yield gitea.repos.repoDownloadPullDiffOrPatch(owner, repo, pull_number, "diff");
+        return response.data;
+    });
+}
 function main() {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
@@ -74,9 +79,22 @@ function main() {
         process.env.GITHUB_REPOSITORY = "cerberus/cerberus";
         process.env.GITHUB_REF_NAME = "13";
         const prDetails = yield getPRDetails();
-        console.log(prDetails);
+        let diff;
         const eventData = JSON.parse((0, fs_1.readFileSync)((_a = process.env.GITHUB_EVENT_PATH) !== null && _a !== void 0 ? _a : "", "utf8"));
-        console.log(eventData);
+        if (eventData.action === "opened") {
+            diff = yield getDiff(prDetails.owner, prDetails.repo, prDetails.pull_number);
+        }
+        else if (eventData.action === "synchronize") {
+            const newBaseSha = eventData.before;
+            const newHeadSha = eventData.after;
+            const response = yield gitea.repos.repoCompareDiff(prDetails.owner, prDetails.repo, `${newBaseSha}...${newHeadSha}`);
+            diff = String(response.data);
+        }
+        else {
+            console.log("Unsupported event:", process.env.GITHUB_EVENT_NAME);
+            return;
+        }
+        console.log(diff);
     });
 }
 main().catch((error) => {
