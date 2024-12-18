@@ -182,6 +182,23 @@ function createComment(
   });
 }
 
+async function createReviewComment(
+  owner: string,
+  repo: string,
+  pull_number: number,
+  comments: Array<{ body: string; path: string; line: number }>
+): Promise<void> {
+  await gitea.repos.repoCreatePullReview(owner, repo, pull_number, {
+    body: "Review from AI",
+    event: "COMMENT",
+    comments: comments.map((comment) => ({
+      body: comment.body,
+      path: comment.path,
+      position: comment.line,
+    })),
+  });
+}
+
 async function main() {
   // Set development environment variables
   process.env.GITHUB_REPOSITORY = "cerberus/cerberus";

@@ -181,6 +181,19 @@ function createComment(file, chunk, aiResponses) {
         };
     });
 }
+function createReviewComment(owner, repo, pull_number, comments) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield gitea.repos.repoCreatePullReview(owner, repo, pull_number, {
+            body: "Review from AI",
+            event: "COMMENT",
+            comments: comments.map((comment) => ({
+                body: comment.body,
+                path: comment.path,
+                position: comment.line,
+            })),
+        });
+    });
+}
 function main() {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
