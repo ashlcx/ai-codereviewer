@@ -150,6 +150,7 @@ function getAIResponse(prompt) {
             presence_penalty: 0,
         };
         try {
+            console.log(prompt);
             const response = yield openai.chat.completions.create(Object.assign(Object.assign(Object.assign({}, queryConfig), (OPENAI_API_MODEL === "gpt-4-1106-preview"
                 ? { response_format: { type: "json_object" } }
                 : {})), { messages: [
