@@ -1,18 +1,24 @@
-import { readFileSync } from "fs";
+import { giteaApi } from "gitea-js";
 import * as core from "@actions/core";
 import OpenAI from "openai";
-import { Octokit } from "@octokit/rest";
+import { readFileSync } from "fs";
 import parseDiff, { Chunk, File } from "parse-diff";
 import minimatch from "minimatch";
 
-const GITHUB_TOKEN: string = core.getInput("GITHUB_TOKEN");
+const GITEA_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
 const OPENAI_API_MODEL: string = core.getInput("OPENAI_API_MODEL");
+const OPENAI_API_BASE_URL: string = core.getInput("OPENAI_API_BASE_URL");
 
-const octokit = new Octokit({ auth: GITHUB_TOKEN });
+const GITEA_URL = process.env.GITHUB_SERVER_URL!;
+
+const gitea = giteaApi(GITEA_URL, {
+  token: GITEA_TOKEN,
+});
 
 const openai = new OpenAI({
   apiKey: OPENAI_API_KEY,
+  baseURL: OPENAI_API_BASE_URL,
 });
 
 interface PRDetails {
@@ -24,20 +30,21 @@ interface PRDetails {
 }
 
 async function getPRDetails(): Promise<PRDetails> {
-  const { repository, number } = JSON.parse(
-    readFileSync(process.env.GITHUB_EVENT_PATH || "", "utf8")
+  const repoPath = process.env.GITHUB_REPOSITORY!;
+  const pull_number = process.env.GITHUB_REF_NAME!;
+  const [owner, repo] = repoPath.split("/");
+
+  const pr = await gitea.repos.repoGetPullRequest(
+    owner,
+    repo,
+    parseInt(pull_number)
   );
-  const prResponse = await octokit.pulls.get({
-    owner: repository.owner.login,
-    repo: repository.name,
-    pull_number: number,
-  });
   return {
-    owner: repository.owner.login,
-    repo: repository.name,
-    pull_number: number,
-    title: prResponse.data.title ?? "",
-    description: prResponse.data.body ?? "",
+    owner,
+    repo,
+    pull_number: parseInt(pull_number),
+    title: pr.data.title ?? "",
+    description: pr.data.body ?? "",
   };
 }
 
@@ -46,14 +53,22 @@ async function getDiff(
   repo: string,
   pull_number: number
 ): Promise<string | null> {
-  const response = await octokit.pulls.get({
+  const response = await gitea.repos.repoDownloadPullDiffOrPatch(
     owner,
     repo,
     pull_number,
-    mediaType: { format: "diff" },
-  });
-  // @ts-expect-error - response.data is a string
-  return response.data;
+    "diff",
+    {
+      binary: false,
+    },
+    {
+      headers: {
+        Accept: "application/vnd.github.v3.diff",
+      },
+      format: "text",
+    }
+  );
+  return String(response.data);
 }
 
 async function analyzeCode(
@@ -90,7 +105,7 @@ function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
 Review the following code diff in the file "${
     file.to
   }" and take the pull request title and description into account when writing the response.
-  
+
 Pull request title: ${prDetails.title}
 Pull request description:
 
@@ -116,8 +131,8 @@ async function getAIResponse(prompt: string): Promise<Array<{
 }> | null> {
   const queryConfig = {
     model: OPENAI_API_MODEL,
-    temperature: 0.2,
-    max_tokens: 700,
+    temperature: 0.5,
+    max_tokens: 2000,
     top_p: 1,
     frequency_penalty: 0,
     presence_penalty: 0,
@@ -137,7 +152,6 @@ async function getAIResponse(prompt: string): Promise<Array<{
         },
       ],
     });
-
     const res = response.choices[0].message?.content?.trim() || "{}";
     return JSON.parse(res).reviews;
   } catch (error) {
@@ -172,16 +186,27 @@ async function createReviewComment(
   pull_number: number,
   comments: Array<{ body: string; path: string; line: number }>
 ): Promise<void> {
-  await octokit.pulls.createReview({
+  console.log(comments);
+  const result = await gitea.repos.repoCreatePullReview(
     owner,
     repo,
     pull_number,
-    comments,
-    event: "COMMENT",
-  });
+    {
+      body: "Review from AI",
+      event: "COMMENT",
+      comments: comments.map((comment) => ({
+        body: comment.body,
+        path: comment.path,
+        new_position: comment.line,
+      })),
+    }
+  );
 }
 
 async function main() {
+  // Set development environment variables
+  process.env.GITHUB_REPOSITORY = "cerberus/cerberus";
+  process.env.GITHUB_REF_NAME = "13";
   const prDetails = await getPRDetails();
   let diff: string | null;
   const eventData = JSON.parse(
@@ -194,26 +219,28 @@ async function main() {
       prDetails.repo,
       prDetails.pull_number
     );
-  } else if (eventData.action === "synchronize") {
-    const newBaseSha = eventData.before;
-    const newHeadSha = eventData.after;
+  } else if (eventData.action === "synchronized") {
+    // Pending new minor release of gitea
+    // const newBaseSha = eventData.pull_request.base.sha;
+    // const newHeadSha = eventData.pull_request.head.sha;
 
-    const response = await octokit.repos.compareCommits({
-      headers: {
-        accept: "application/vnd.github.v3.diff",
-      },
-      owner: prDetails.owner,
-      repo: prDetails.repo,
-      base: newBaseSha,
-      head: newHeadSha,
-    });
+    // console.log(`Request: ${newBaseSha} ... ${newHeadSha}`);
 
-    diff = String(response.data);
+    // const response = await gitea.repos.repoCompareDiff(
+    //   prDetails.owner,
+    //   prDetails.repo,
+    //   `${newBaseSha} ... ${newHeadSha}`
+    // );
+
+    diff = await getDiff(
+      prDetails.owner,
+      prDetails.repo,
+      prDetails.pull_number
+    );
   } else {
-    console.log("Unsupported event:", process.env.GITHUB_EVENT_NAME);
+    console.log("Unsupported event:", eventData.action);
     return;
   }
-
   if (!diff) {
     console.log("No diff found");
     return;
@@ -233,14 +260,12 @@ async function main() {
   });
 
   const comments = await analyzeCode(filteredDiff, prDetails);
-  if (comments.length > 0) {
-    await createReviewComment(
-      prDetails.owner,
-      prDetails.repo,
-      prDetails.pull_number,
-      comments
-    );
-  }
+  await createReviewComment(
+    prDetails.owner,
+    prDetails.repo,
+    prDetails.pull_number,
+    comments
+  );
 }
 
 main().catch((error) => {
