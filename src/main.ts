@@ -57,7 +57,7 @@ async function getDiff(
     pull_number,
     "diff"
   );
-  console.log(response.url);
+  console.log(response);
   return response.data;
 }
 
