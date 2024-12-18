@@ -3,7 +3,7 @@ import * as core from "@actions/core";
 import OpenAI from "openai";
 import { readFileSync } from "fs";
 
-const GITEA_TOKEN: string = core.getInput("GIHUB_TOKEN");
+const GITEA_TOKEN: string = core.getInput("GITHUB_TOKEN");
 const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
 const OPENAI_API_MODEL: string = core.getInput("OPENAI_API_MODEL");
 const OPENAI_API_BASE_URL: string = core.getInput("OPENAI_API_BASE_URL");
