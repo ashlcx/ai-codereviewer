@@ -189,7 +189,7 @@ function createReviewComment(owner, repo, pull_number, comments) {
             comments: comments.map((comment) => ({
                 body: comment.body,
                 path: comment.path,
-                position: comment.line,
+                new_position: comment.line,
             })),
         });
         console.log(result);

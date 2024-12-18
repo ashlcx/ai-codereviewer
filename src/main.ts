@@ -198,7 +198,7 @@ async function createReviewComment(
       comments: comments.map((comment) => ({
         body: comment.body,
         path: comment.path,
-        position: comment.line,
+        new_position: comment.line,
       })),
     }
   );
