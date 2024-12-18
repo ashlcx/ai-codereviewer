@@ -78,7 +78,7 @@ async function main() {
       prDetails.repo,
       prDetails.pull_number
     );
-  } else if (eventData.action === "synchronize") {
+  } else if (eventData.action === "synchronized") {
     const newBaseSha = eventData.before;
     const newHeadSha = eventData.after;
 
@@ -90,7 +90,7 @@ async function main() {
 
     diff = String(response.data);
   } else {
-    console.log("Unsupported event:", process.env.GITHUB_EVENT_NAME);
+    console.log("Unsupported event:", eventData.action);
     return;
   }
   console.log(diff);

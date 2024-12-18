@@ -85,14 +85,14 @@ function main() {
         if (eventData.action === "opened") {
             diff = yield getDiff(prDetails.owner, prDetails.repo, prDetails.pull_number);
         }
-        else if (eventData.action === "synchronize") {
+        else if (eventData.action === "synchronized") {
             const newBaseSha = eventData.before;
             const newHeadSha = eventData.after;
             const response = yield gitea.repos.repoCompareDiff(prDetails.owner, prDetails.repo, `${newBaseSha}...${newHeadSha}`);
             diff = String(response.data);
         }
         else {
-            console.log("Unsupported event:", process.env.GITHUB_EVENT_NAME);
+            console.log("Unsupported event:", eventData.action);
             return;
         }
         console.log(diff);
