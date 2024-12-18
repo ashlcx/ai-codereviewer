@@ -74,6 +74,7 @@ function getDiff(owner, repo, pull_number) {
             headers: {
                 Accept: "application/vnd.github.v3.diff",
             },
+            format: "text",
         });
         console.log(response);
         return String(response.data);

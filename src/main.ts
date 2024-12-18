@@ -63,6 +63,7 @@ async function getDiff(
       headers: {
         Accept: "application/vnd.github.v3.diff",
       },
+      format: "text",
     }
   );
   console.log(response);
