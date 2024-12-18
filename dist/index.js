@@ -81,6 +81,7 @@ function main() {
         const prDetails = yield getPRDetails();
         let diff;
         const eventData = JSON.parse((0, fs_1.readFileSync)((_a = process.env.GITHUB_EVENT_PATH) !== null && _a !== void 0 ? _a : "", "utf8"));
+        console.log(eventData.pull_request);
         if (eventData.action === "opened") {
             diff = yield getDiff(prDetails.owner, prDetails.repo, prDetails.pull_number);
         }
@@ -88,7 +89,7 @@ function main() {
             const newBaseSha = eventData.pull_request.base.sha;
             const newHeadSha = eventData.pull_request.head.sha;
             console.log(`Request: ${newBaseSha} ... ${newHeadSha}`);
-            const response = yield gitea.repos.repoCompareDiff(prDetails.owner, prDetails.repo, `${newHeadSha} ... ${newBaseSha}`);
+            const response = yield gitea.repos.repoCompareDiff(prDetails.owner, prDetails.repo, `${newBaseSha} ... ${newHeadSha}`);
             diff = String(response.data);
         }
         else {

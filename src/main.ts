@@ -70,6 +70,8 @@ async function main() {
     readFileSync(process.env.GITHUB_EVENT_PATH ?? "", "utf8")
   );
 
+  console.log(eventData.pull_request);
+
   if (eventData.action === "opened") {
     diff = await getDiff(
       prDetails.owner,
@@ -85,7 +87,7 @@ async function main() {
     const response = await gitea.repos.repoCompareDiff(
       prDetails.owner,
       prDetails.repo,
-      `${newHeadSha} ... ${newBaseSha}`
+      `${newBaseSha} ... ${newHeadSha}`
     );
 
     diff = String(response.data);
