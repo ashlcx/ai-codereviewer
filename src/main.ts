@@ -188,15 +188,21 @@ async function createReviewComment(
   comments: Array<{ body: string; path: string; line: number }>
 ): Promise<void> {
   console.log(comments);
-  await gitea.repos.repoCreatePullReview(owner, repo, pull_number, {
-    body: "Review from AI",
-    event: "COMMENT",
-    comments: comments.map((comment) => ({
-      body: comment.body,
-      path: comment.path,
-      position: comment.line,
-    })),
-  });
+  const result = await gitea.repos.repoCreatePullReview(
+    owner,
+    repo,
+    pull_number,
+    {
+      body: "Review from AI",
+      event: "COMMENT",
+      comments: comments.map((comment) => ({
+        body: comment.body,
+        path: comment.path,
+        position: comment.line,
+      })),
+    }
+  );
+  console.log(result);
 }
 
 async function main() {

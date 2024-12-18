@@ -183,7 +183,7 @@ function createComment(file, chunk, aiResponses) {
 function createReviewComment(owner, repo, pull_number, comments) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log(comments);
-        yield gitea.repos.repoCreatePullReview(owner, repo, pull_number, {
+        const result = yield gitea.repos.repoCreatePullReview(owner, repo, pull_number, {
             body: "Review from AI",
             event: "COMMENT",
             comments: comments.map((comment) => ({
@@ -192,6 +192,7 @@ function createReviewComment(owner, repo, pull_number, comments) {
                 position: comment.line,
             })),
         });
+        console.log(result);
     });
 }
 function main() {
