@@ -69,6 +69,7 @@ function getPRDetails() {
 function getDiff(owner, repo, pull_number) {
     return __awaiter(this, void 0, void 0, function* () {
         const response = yield gitea.repos.repoDownloadPullDiffOrPatch(owner, repo, pull_number, "diff");
+        console.log(response.url);
         return response.data;
     });
 }
