@@ -85,7 +85,7 @@ async function main() {
     const response = await gitea.repos.repoCompareDiff(
       prDetails.owner,
       prDetails.repo,
-      `${newBaseSha} ... ${newHeadSha}`
+      `${newHeadSha} ... ${newBaseSha}`
     );
 
     diff = String(response.data);
