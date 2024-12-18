@@ -55,9 +55,17 @@ async function getDiff(
     owner,
     repo,
     pull_number,
-    "diff"
+    "diff",
+    {
+      binary: false,
+    },
+    {
+      headers: {
+        Accept: "application/vnd.github.v3.diff",
+      },
+    }
   );
-  console.log(String(response.data));
+  console.log(response);
   return String(response.data);
 }
 

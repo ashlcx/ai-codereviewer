@@ -68,8 +68,14 @@ function getPRDetails() {
 }
 function getDiff(owner, repo, pull_number) {
     return __awaiter(this, void 0, void 0, function* () {
-        const response = yield gitea.repos.repoDownloadPullDiffOrPatch(owner, repo, pull_number, "diff");
-        console.log(String(response.data));
+        const response = yield gitea.repos.repoDownloadPullDiffOrPatch(owner, repo, pull_number, "diff", {
+            binary: false,
+        }, {
+            headers: {
+                Accept: "application/vnd.github.v3.diff",
+            },
+        });
+        console.log(response);
         return String(response.data);
     });
 }
