@@ -239,6 +239,7 @@ function main() {
         });
         const comments = yield analyzeCode(filteredDiff, prDetails);
         console.log(comments);
+        yield createReviewComment(prDetails.owner, prDetails.repo, prDetails.pull_number, comments);
     });
 }
 main().catch((error) => {
