@@ -88,6 +88,7 @@ function main() {
         else if (eventData.action === "synchronized") {
             const newBaseSha = eventData.pull_request.base.sha;
             const newHeadSha = eventData.pull_request.head.sha;
+            console.log(`Request: ${newBaseSha}...${newHeadSha}`);
             const response = yield gitea.repos.repoCompareDiff(prDetails.owner, prDetails.repo, `${newBaseSha}...${newHeadSha}`);
             diff = String(response.data);
         }

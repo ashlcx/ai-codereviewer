@@ -82,6 +82,8 @@ async function main() {
     const newBaseSha = eventData.pull_request.base.sha;
     const newHeadSha = eventData.pull_request.head.sha;
 
+    console.log(`Request: ${newBaseSha}...${newHeadSha}`);
+
     const response = await gitea.repos.repoCompareDiff(
       prDetails.owner,
       prDetails.repo,
