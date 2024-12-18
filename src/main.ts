@@ -153,7 +153,6 @@ async function getAIResponse(prompt: string): Promise<Array<{
         },
       ],
     });
-    console.log(response.choices);
     const res = response.choices[0].message?.content?.trim() || "{}";
     return JSON.parse(res).reviews;
   } catch (error) {
@@ -188,6 +187,7 @@ async function createReviewComment(
   pull_number: number,
   comments: Array<{ body: string; path: string; line: number }>
 ): Promise<void> {
+  console.log(comments);
   await gitea.repos.repoCreatePullReview(owner, repo, pull_number, {
     body: "Review from AI",
     event: "COMMENT",
@@ -208,8 +208,6 @@ async function main() {
   const eventData = JSON.parse(
     readFileSync(process.env.GITHUB_EVENT_PATH ?? "", "utf8")
   );
-
-  console.log(eventData.pull_request);
 
   if (eventData.action === "opened") {
     diff = await getDiff(
@@ -239,8 +237,6 @@ async function main() {
     console.log("Unsupported event:", eventData.action);
     return;
   }
-  // console.log(diff);
-  //
   if (!diff) {
     console.log("No diff found");
     return;
@@ -260,7 +256,6 @@ async function main() {
   });
 
   const comments = await analyzeCode(filteredDiff, prDetails);
-  console.log(comments);
   await createReviewComment(
     prDetails.owner,
     prDetails.repo,

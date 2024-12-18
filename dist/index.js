@@ -159,7 +159,6 @@ function getAIResponse(prompt) {
                         content: prompt,
                     },
                 ] }));
-            console.log(response.choices);
             const res = ((_b = (_a = response.choices[0].message) === null || _a === void 0 ? void 0 : _a.content) === null || _b === void 0 ? void 0 : _b.trim()) || "{}";
             return JSON.parse(res).reviews;
         }
@@ -183,6 +182,7 @@ function createComment(file, chunk, aiResponses) {
 }
 function createReviewComment(owner, repo, pull_number, comments) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log(comments);
         yield gitea.repos.repoCreatePullReview(owner, repo, pull_number, {
             body: "Review from AI",
             event: "COMMENT",
@@ -203,7 +203,6 @@ function main() {
         const prDetails = yield getPRDetails();
         let diff;
         const eventData = JSON.parse((0, fs_1.readFileSync)((_a = process.env.GITHUB_EVENT_PATH) !== null && _a !== void 0 ? _a : "", "utf8"));
-        console.log(eventData.pull_request);
         if (eventData.action === "opened") {
             diff = yield getDiff(prDetails.owner, prDetails.repo, prDetails.pull_number);
         }
@@ -223,8 +222,6 @@ function main() {
             console.log("Unsupported event:", eventData.action);
             return;
         }
-        // console.log(diff);
-        //
         if (!diff) {
             console.log("No diff found");
             return;
@@ -238,7 +235,6 @@ function main() {
             return !excludePatterns.some((pattern) => { var _a; return (0, minimatch_1.default)((_a = file.to) !== null && _a !== void 0 ? _a : "", pattern); });
         });
         const comments = yield analyzeCode(filteredDiff, prDetails);
-        console.log(comments);
         yield createReviewComment(prDetails.owner, prDetails.repo, prDetails.pull_number, comments);
     });
 }
