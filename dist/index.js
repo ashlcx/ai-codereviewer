@@ -42,14 +42,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const gitea_js_1 = __nccwpck_require__(814);
 const core = __importStar(__nccwpck_require__(186));
 const fs_1 = __nccwpck_require__(147);
-const GITEA_TOKEN = core.getInput("GITEA_TOKEN");
+const GITEA_TOKEN = core.getInput("GIHUB_TOKEN");
 const OPENAI_API_KEY = core.getInput("OPENAI_API_KEY");
 const OPENAI_API_MODEL = core.getInput("OPENAI_API_MODEL");
 const OPENAI_API_BASE_URL = core.getInput("OPENAI_API_BASE_URL");
 const GITEA_URL = process.env.GITHUB_SERVER_URL;
 const gitea = (0, gitea_js_1.giteaApi)(GITEA_URL, {
     token: GITEA_TOKEN,
-    customFetch: fetch,
 });
 function getPRDetails() {
     var _a, _b;
